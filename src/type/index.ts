@@ -1,10 +1,12 @@
-export interface LoginFormInt {
-    username: string,
-    password: string
+export interface IndexFormInt {
+    state: string,
+    firstTime:string,
+    finishTIme :string,
 }
-export class LoginData {
-    ruleForm: LoginFormInt = {
-        username: "",
-        password: ""
+export class IndexData {
+    ruleForm: IndexFormInt = {
+        state: "1",
+        firstTime: "",
+        finishTIme:"",
     }
 }

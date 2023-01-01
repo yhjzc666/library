@@ -19,45 +19,36 @@ const routes: Array<RouteRecordRaw> = [
         path: "index",
         name: "index",
         meta: {
-          isShow: true, 
-          icon: "Setting",
-          title:"首页"
+          isShow: true,
+          icon: "Stamp",
+          title: "学生信息管理",
         },
-        component: () => import(/* webpackChunkName: "goods" */ '../views/IndexView.vue')
+        component: () => import(/* webpackChunkName: "goods" */ '../views/StudentView.vue')
       }, {
-        path: "user",
-        name: "user",
+        path: "seat",
+        name: "seat",
         meta: {
           isShow: true,
-          icon: "UserFilled",
-          title:"用户列表"
+          icon: "Setting",
+          title: "座位信息管理"
         },
-        component: () => import(/* webpackChunkName: "user" */ '../views/UserView.vue')
+        component: () => import(/* webpackChunkName: "user" */ '../views/SeatView.vue')
       }, {
         path: "book",
         name: "book",
         meta: {
           isShow: true,
           icon: "List",
-          title:"预约管理"
+          title: "预约管理"
         },
         component: () => import(/* webpackChunkName: "user" */ '../views/BookView.vue')
-      }, {
-        path: "seat",
-        name: "seat",
-        meta: {
-          isShow: true,
-          icon: "Stamp",
-          title:"座位管理"
-        },
-        component: () => import(/* webpackChunkName: "user" */ '../views/SeatView.vue')
       }, {
         path: "statistic",
         name: "statistic",
         meta: {
           isShow: true,
           icon: "Histogram",
-          title:"统计数据"
+          title: "统计数据"
         },
         component: () => import(/* webpackChunkName: "user" */ '../views/StatisticsView.vue')
       }, {
@@ -66,7 +57,7 @@ const routes: Array<RouteRecordRaw> = [
         meta: {
           isShow: true,
           icon: "WarningFilled",
-          title:"安全设置"
+          title: "系统设置"
         },
         component: () => import(/* webpackChunkName: "user" */ '../views/SafeView.vue')
       }

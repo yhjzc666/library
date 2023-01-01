@@ -23,11 +23,12 @@ service.interceptors.request.use((config) => {
 
 //响应拦截
 service.interceptors.response.use((res) => {
+    console.log(res)
     const code: number = res.data.code
-    if (code != 200) {
-        return Promise.reject(res.data)
+    if (code == 200 || code == 300 || code == 400) {
+        return res.data
     }
-    return res.data
+    return Promise.reject(res.data)
 }, (err) => {
     console.log(err);
 

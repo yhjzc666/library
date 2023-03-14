@@ -2,21 +2,27 @@
   <div class="common-layout">
     <div class="buttons">
       <el-button type="primary" @click="drawer = true">添加</el-button>
-      <el-button type="danger">批量删除</el-button>
+      <el-popconfirm
+        confirm-button-text="是的"
+        cancel-button-text="取消"
+        :icon="InfoFilled"
+        icon-color="#626AEF"
+        title="将删除所选学生信息"
+        @confirm="confirmEvent"
+        @cancel="cancelEvent"
+      >
+        <template #reference>
+          <el-button type="danger">批量删除</el-button>
+        </template>
+      </el-popconfirm>
     </div>
     <div class="search">
-      <!-- v-model="input_value" -->
       <el-input
         placeholder="请输入搜索内容"
         v-model="state.input_value"
       ></el-input>
-      <el-button style="lineheight: 8px">搜索</el-button>
     </div>
-    <!-- :data="tableData()"  -->
-    <!-- search.slice(
-          (states.currentPage - 1) * states.pagesize,
-          states.currentPage * states.pagesize
-        ) -->
+    <!-- :row-key="getRowKey" -->
     <el-table
       style="width: 100%"
       :data="
@@ -25,7 +31,10 @@
           state.currentPage * state.pagesize
         )
       "
+      @selection-change="handleSelectionChange"
     >
+      <!-- :reserve-selection="true" -->
+      <el-table-column type="selection" width="30" align="center" />
       <el-table-column
         v-for="col in tableHeader"
         :prop="col.prop"
@@ -35,7 +44,7 @@
       </el-table-column>
       <el-table-column align="left">
         <template #default="scope">
-          <el-button size="small" @click="handleEdit(scope.$index, scope.row)"
+          <el-button size="small" @click="handleEdit(scope.$index, scope.row);drawer = true"
             >编辑</el-button
           >
           <el-button
@@ -63,16 +72,6 @@
       >
       </el-pagination>
     </div>
-    <!-- <div class="example-pagination-block">
-      <div class="example-demonstration">分页</div>
-      <el-pagination
-        background
-        layout="prev, pager, next ,total,sizes"
-        :total="state.tableData.length"
-        @current-change="handleCurrentChange"
-        @size-change="handleSizeChange"
-      />
-    </div> -->
     <el-drawer
       v-model="drawer"
       title="添加学生信息"
@@ -106,8 +105,17 @@
   <script lang="ts" setup>
 import { computed, ref, reactive } from "vue";
 import { ElMessageBox, ElDrawer, ElMessage } from "element-plus";
-import { insertStu, selectStu } from "../request/api";
+import { insertStu, selectStu,deleteStu } from "../request/api";
 import { onMounted } from "@vue/runtime-core";
+import { InfoFilled } from "@element-plus/icons-vue";
+
+const confirmEvent = () => {
+  deleteStus();
+};
+const cancelEvent = () => {
+  console.log("cancel!");
+};
+
 const tableHeader = [
   { prop: "stuID", label: "学号" },
   { prop: "username", label: "姓名" },
@@ -123,69 +131,70 @@ const state = reactive({
   currentPage: 1, //默认开始页面
   total: 0,
   pagesize: 11, //每页的数据条数
+  multipleSelection: [],
+  multipleSelectAry: [],
 });
+interface User {
+  stuID: string;
+  username: string;
+  state: string;
+}
+
+//获取数据
 onMounted(() => {
-  getGoodList();
+  getStuList();
 });
 
-const getGoodList = () => {
+const getStuList = () => {
   selectStu().then((res) => {
     state.tableData = res.stuDate;
     state.total = res.stuDate.length;
   });
 };
 
-//显示表格
-interface User {
-  stuID: string;
-  username: string;
-  state: string;
-}
-const arr = ref([]); //声明一个新数组
+const handleSelectionChange = (rows: string[]) => {
+  state.multipleSelection = rows;
+  console.log(state.multipleSelection)
+};
+const deleteStus = () => {
+  if (state.multipleSelection.length == 0) {
+    ElMessage({
+      message: "请选择要删除的学生",
+      type: "error",
+    });
+  }
+  let ids = state.multipleSelection.map((item) => item.stuID);
+  console.log(JSON.stringify(ids))
+  deleteStu(JSON.stringify(ids)).then((res) => {
+    if(res.code == 200){
+      ElMessage({
+        message: "学生信息删除成功",
+        type: "success",
+      });
+      getStuList();
+    }
+  });
+};
+
+//搜索框
 const search = computed<any>(() => {
   if (state.input_value) {
-    state.tableData.filter((data) => {
-      data.stuID.indexOf(state.input_value) !== -1;
-      console.log(data.stuID.indexOf(state.input_value) !== -1);
+    return state.tableData.filter((data) => {
+      return Object.keys(data).some((key) => {
+        return String(data[key]).toLowerCase().indexOf(state.input_value) > -1;
+      });
     });
   }
   return state.tableData;
   // 若返回值不是 number 类型则会报错
 });
-// const search = () =>{
-//   if (states.input_value) {
-//     return states.tableData.filter((data) => {
-//       return Object.keys(data).some((key) => {
-//         return String(data[key]).toLowerCase().indexOf(states.input_value) > -1;
-//       });
-//     });
-//   }
-//   return states.tableData;
-// };
 
-const handleEdit = (index: number, row: User) => {
-  console.log(index, row);
-};
-const handleDelete = (index: number, row: User) => {
-  console.log(index, row);
-}; //生成表格
 
-// const tableRowClassName = ({ rowIndex }) => {
-//   if (rowIndex === 0) {
-//     return "th";
-//   }
-//   return "";
-// };
-// const switchChange = () => {
-//   state.istag = !state.istag;
-// };
-
+//生成表格
+//翻页
 const current_change = (currentPage: any) => {
   state.currentPage = currentPage;
 };
-// const created = () => {
-//   state.total = state.tableData.length;
-// };
 
 //添加学生信息
 const form = reactive({
@@ -206,7 +215,6 @@ const handleClose = (done: () => void) => {
     });
 };
 const insertStus = () => {
-  console.log(form);
   insertStu(form).then((res) => {
     const map = new Map(Object.entries(res));
     console.log();
@@ -215,7 +223,7 @@ const insertStus = () => {
         message: "学生信息添加成功",
         type: "success",
       });
-      getGoodList();
+      getStuList();
     }
     if (map.get("code") == 300) {
       ElMessage({
@@ -235,6 +243,17 @@ const insertStus = () => {
 const cancelForm = () => {
   loading.value = false;
 }; //添加学生信息结束
+
+//编辑操作
+const handleEdit = (index: number, row: User) => {
+  form.stuID = row.stuID
+  form.username = row.username
+  console.log(index, row);
+};
+//删除
+const handleDelete = (index: number, row: User) => {
+  console.log(index, row);
+}; 
 </script>
 <style lang="scss" scoped>
 .search {
